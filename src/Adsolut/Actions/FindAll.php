@@ -7,12 +7,23 @@
 
         /**
          * @param array $params
-         * @param array $body
+         * @param array $headers
          * @return mixed
          */
-        public function getAll( $params = array(), $body = array() )
+        public function get( $params = array(), $headers = array() )
         {
-            $result = $this->connection()->request( 'GET', $this->endpoint(), $this->api(), $body, $params );
+            $result = $this->connection()->get( $this->source(), $this->version(), $this->endpoint(), $this->without_administration_id(), false, $params, $headers );
+            return $result;
+        }
+
+        /**
+         * @param array $params
+         * @param array $headers
+         * @return mixed
+         */
+        public function getAll( $params = array(), $headers = array() )
+        {
+            $result = $this->connection()->get( $this->source(), $this->version(), $this->endpoint(), $this->without_administration_id(), true, $params, $headers );
             return $result;
         }
     }

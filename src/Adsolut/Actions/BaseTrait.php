@@ -10,20 +10,26 @@
         abstract protected function connection();
 
         /**
-         * @see \PixelOne\Connectors\Adsolut\Model::api_version();
+         * @see \PixelOne\Connectors\Adsolut\Model::source();
          * @return string
          */
-        abstract protected function api_version();
+        abstract protected function source();
 
         /**
-         * @see \PixelOne\Connectors\Adsolut\Model::api();
+         * @see \PixelOne\Connectors\Adsolut\Model::version();
          * @return string
          */
-        abstract protected function api();
+        abstract protected function version();
 
         /**
          * @see \PixelOne\Connectors\Adsolut\Model::endpoint();
          * @return string
          */
         abstract protected function endpoint();
+
+        /**
+         * @see \PixelOne\Connectors\Adsolut\Model::without_administration_id();
+         * @return bool
+         */
+        abstract protected function without_administration_id();
     }

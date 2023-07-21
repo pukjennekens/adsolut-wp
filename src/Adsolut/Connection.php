@@ -1,7 +1,6 @@
 <?php
     namespace PixelOne\Connectors\Adsolut;
 
-    use FileSystemCache;
     use GuzzleHttp\Client;
     use GuzzleHttp\Exception\ClientException;
     use GuzzleHttp\HandlerStack;
@@ -108,8 +107,6 @@
         {
             if( $this->client )
                 return $this->client;
-
-            FileSystemCache::$cacheDir = __DIR__ . '/cache';
 
             $handler_stack = HandlerStack::create();
 
@@ -425,17 +422,19 @@
         /**
          * Create a request to send to the Adsolute API
          * @param string $method The HTTP method
+         * @param string $source Accounting (acc), ERP (erp), Documents (dms)
+         * @param string $version The API version
          * @param string $endpoint The endpoint
-         * @param string $api The API to use, "acc" for Accounting, "dms" for Document Management (Basecone or ERP document management), "erp" for ERP
+         * @param bool $without_administration Whether to include the administration ID
          * @param array $body The body
          * @param array $params The query parameters
          * @param array $headers The headers
          * @return \GuzzleHttp\Psr7\Request
          */
-        public function create_request( $method, $endpoint, $api, $body = array(), $params = array(), $headers = array() )
+        public function create_request( $method, $source, $version, $endpoint, $without_administration = false, $body = array(), $params = array(), $headers = array() )
         {
             $headers = array_merge( $headers, array(
-                'Content-Type' => 'application/json-patch+json',
+                'Content-Type' => 'application/json',
                 'Cache-Control' => 'no-cache',
             ) );
 
@@ -451,22 +450,25 @@
             if( ! empty( $params ) )
                 $endpoint .= '?' . http_build_query( $params );
 
-            $request = new Request( $method, $this->format_url( $endpoint, $api ), $headers, json_encode( $body ) );
+            $endpoint = $this->format_url( $source, $version, $endpoint, $without_administration );
+
+            $request = new Request( $method, $endpoint, $headers, json_encode( $body ) );
             return $request;
         }
 
         /**
          * Format the URL to include the administration ID
-         * @param string $endpoint
-         * @param string $api The API to use, "acc" for Accounting, "dms" for Document Management (Basecone or ERP document management), "erp" for ERP
-         * @param string $api_version The API version to use, defaults to V1
+         * @param string $source Accounting (acc), ERP (erp), Documents (dms)
+         * @param string $version The API version
+         * @param string $endpoint The endpoint
+         * @param bool $without_administration Whether to include the administration ID
          * @return string
          */
-        private function format_url( $endpoint, $api = null, $api_version = 'V1' )
+        private function format_url( $source, $version = 'V1', $endpoint, $without_administration )
         {
             $url = $this->test_mode ? $this->test_url : $this->live_url;
 
-            return $url . '/' . ( $api ? $api . '/' : '' ) . $api_version . '/' . ( $this->administration_id ? $this->administration_id . '/' : '' ) . $endpoint;
+            return $url . '/' . ( $source ? $source . '/' : '' ) . $version . '/' . ( ! $without_administration && $this->administration_id ? 'adm/' . $this->administration_id . '/' : '' ) . $endpoint;
         }
 
         /**
@@ -484,46 +486,22 @@
         /**
          * Make a request
          * @param string $method The HTTP method
+         * @param string $source Accounting (acc), ERP (erp), Documents (dms)
+         * @param string $version The API version
          * @param string $endpoint The endpoint
-         * @param string $api The API to use, "acc" for Accounting, "dms" for Document Management (Basecone or ERP document management), "erp" for ERP
+         * @param bool $without_administration Whether to include the administration ID
          * @param array $body The body
          * @param array $params The query parameters
          * @param array $headers The headers
          * @throws \PixelOne\Connectors\Adsolut\AdsolutException
          * @return \GuzzleHttp\Psr7\Response
          */
-        public function request( $method, $endpoint, $api, $body = array(), $params = array(), $headers = array() )
+        public function request( $method, $source, $version, $endpoint, $without_administration = false, $body = array(), $params = array(), $headers = array() )
         {
-            $request = $this->create_request( $method, $endpoint, $api );
+            $request = $this->create_request( $method, $source, $version, $endpoint, $without_administration, $body, $params, $headers );
             $response = $this->client->send( $request );
             
             return $this->format_response( $response );
-        }
-
-        /**
-         * Make a cached request, will return the cached response if it exists
-         * @param string $method The HTTP method
-         * @param string $endpoint The endpoint
-         * @param string $api The API to use, "acc" for Accounting, "dms" for Document Management (Basecone or ERP document management), "erp" for ERP
-         * @param array $body The body
-         * @param array $params The query parameters
-         * @param array $headers The headers
-         * @throws \PixelOne\Connectors\Adsolut\AdsolutException
-         * @return \GuzzleHttp\Psr7\Response
-         */
-        public function cached_request( $method, $endpoint, $api, $body = array(), $params = array(), $headers = array() )
-        {
-            $cache_key_string = md5( $method . $endpoint . $api . json_encode( $body ) . json_encode( $params ) . json_encode( $headers ) );
-            $cache_key        = FileSystemCache::generateCacheKey( $cache_key_string );
-            $found            = FileSystemCache::retrieve( $cache_key );
-
-            if( $found )
-                return $found;
-
-            $response = $this->request( $method, $endpoint, $api, $body, $params, $headers );
-            FileSystemCache::store( $cache_key, $response, 60 * 15 );
-
-            return $response;
         }
 
         /**
@@ -542,5 +520,31 @@
             } catch( \RuntimeException $e ) {
                 throw new AdsolutException( 'Invalid response from Adsolut: ' . $e->getMessage() );
             }
+        }
+
+        /**
+         * Make a get request to the API
+         * @param string $source Accounting (acc), ERP (erp), Documents (dms)
+         * @param string $version The API version
+         * @param string $endpoint The endpoint
+         * @param bool $without_administration Whether to include the administration ID
+         * @param bool $fetch_all Whether to find all results or just the first one
+         * @param array $params The query parameters
+         * @param array $headers The headers
+         * @throws \PixelOne\Connectors\Adsolut\AdsolutException
+         * @return array
+         */
+        public function get( $source, $version, $endpoint, $without_administration = false, $fetch_all = false, $params = array(), $headers = array() )
+        {
+            if( ! empty( $params ) )
+                $endpoint .= '?' . http_build_query( $params );
+
+            if( ! $without_administration )
+                $endpoint = $this->format_url( $source, $version, $endpoint, $without_administration );
+
+            $request = $this->create_request( 'GET', $source, $version, $endpoint, $without_administration, array(), $params, $headers );
+            $response = $this->client->send( $request );
+
+            return $this->format_response( $response );
         }
     }

@@ -66,10 +66,7 @@
          * @return void
          */
         public static function render_page()
-        {
-            $administrations = new \PixelOne\Connectors\Adsolut\Entities\Administration( self::$connection );
-            $administrations = $administrations->getAll();
-            
+        {            
             Utils::render_template( 'admin/settings', array(
                 'redirect_uri'       => self::get_redirect_uri(),
                 'logout_uri'         => self::get_logout_uri(),

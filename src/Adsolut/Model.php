@@ -22,19 +22,24 @@
         protected $fillable = array();
 
         /**
+         * @var string $source The API source
+         */
+        protected $source;
+
+        /**
+         * @var string $version The API version
+         */
+        protected $version;
+
+        /**
          * @var string $endpoint The model endpoint
          */
-        protected $endpoint = array();
+        protected $endpoint;
 
         /**
-         * @var string $api The model api
+         * @var bool $without_administration_id Should the model make requests without administration ids?
          */
-        protected $api = array();
-
-        /**
-         * @var string $api_version The model api version
-         */
-        protected $api_version = 'V1';
+        protected $without_administration_id = false;
 
         /**
          * @var string $primary_key The model primary key
@@ -155,29 +160,38 @@
         }
 
         /**
+         * Get the API source
+         * @return string
+         */
+        public function source()
+        {
+            return $this->source;
+        }
+
+        /**
          * Get the API version
          * @return string
          */
-        public function api_version()
+        public function version()
         {
-            return $this->api_version;
+            return $this->version;
         }
 
         /**
-         * Get the API
-         * @return string
-         */
-        public function api()
-        {
-            return $this->api;
-        }
-
-        /**
-         * Get the endpoint
+         * Get the model endpoint
          * @return string
          */
         public function endpoint()
         {
             return $this->endpoint;
+        }
+
+        /**
+         * Get if to request without administration id
+         * @return bool
+         */
+        public function without_administration_id()
+        {
+            return $this->without_administration_id;
         }
     }

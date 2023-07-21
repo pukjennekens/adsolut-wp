@@ -23,19 +23,24 @@
         use FindAll;
 
         /**
+         * @var string $source The API source
+         */
+        protected $source = 'adm';
+
+        /**
+         * @var string $version The API version
+         */
+        protected $version = 'v1';
+
+        /**
          * @var string $endpoint The model endpoint
          */
         protected $endpoint = 'administrations';
 
         /**
-         * @var string $api The model api
+         * @var bool $without_administration_id Should the model make requests without administration ids?
          */
-        protected $api = 'adm';
-
-        /**
-         * @var string $api_version The model api version
-         */
-        protected $api_version = 'V1';
+        protected $without_administration_id = true;
 
         /**
          * @var string $primary_key The primary key
