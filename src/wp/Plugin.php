@@ -37,12 +37,13 @@ use PixelOne\Connectors\Adsolut\Exceptions\AdsolutException;
                     Admin::set_authorization_code( $_connection->get_authorization_code() );
                 } );
 
-                // Admin::set_authorization_code(null);
-
                 $connection->set_authorization_code( Admin::get_authorization_code() );
                 $connection->set_access_token( Admin::get_access_token() );
                 $connection->set_refresh_token( Admin::get_refresh_token() );
                 $connection->set_token_expires_at( Admin::get_expires_at() );
+
+                if( ! empty( Admin::get_administration_id() ) )
+                    $connection->set_administration_id( Admin::get_administration_id() );
 
                 try {
                     $connection->connect();

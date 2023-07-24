@@ -370,6 +370,28 @@
         }
 
         /**
+         * Set the administration ID
+         * @param string $administration_id
+         * @return void
+         */
+        public static function set_administration_id( $administration_id )
+        {
+            $settings = get_option( 'adsolut_settings' );
+            $settings['administration_id'] = $administration_id;
+            update_option( 'adsolut_settings', $settings );
+        }
+
+        /**
+         * Get the administration ID
+         * @return string
+         */
+        public static function get_administration_id()
+        {
+            $settings = get_option( 'adsolut_settings' );
+            return isset( $settings['administration_id'] ) ? $settings['administration_id'] : '';
+        }
+
+        /**
          * Check if the user is logged in to Adsolut
          * @return boolean
          */
