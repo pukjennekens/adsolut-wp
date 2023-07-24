@@ -189,4 +189,14 @@
             border-radius: 4px;
         }
     </style>
+
+    <script>
+        jQuery(document).ready(function($) {
+            $('input[type="hidden"]').each(function() {
+                if( $(this).attr('name').startsWith('adsolut_settings') ) {
+                    $(this).parent().parent().hide();
+                }
+            });
+        });
+    </script>
 </div>

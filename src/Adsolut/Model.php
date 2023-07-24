@@ -83,6 +83,15 @@
         }
 
         /**
+         * Get the class as a plain object
+         * @return object
+         */
+        public function to_object()
+        {
+            return (object) $this->attributes;
+        }
+
+        /**
          * First initialize the model
          * @return void
          */

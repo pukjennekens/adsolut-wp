@@ -466,17 +466,6 @@
          */
         private function format_url( $source, $version = 'V1', $endpoint, $without_administration )
         {
-            echo '<pre>';
-            print_r( array(
-                'source' => $source,
-                'version' => $version,
-                'endpoint' => $endpoint,
-                'without_administration' => $without_administration,
-                'administration_id' => $this->administration_id,
-            ) );
-            echo '</pre>';
-            echo '<br />';
-
             $url = $this->test_mode ? $this->test_url : $this->live_url;
 
             return $url . '/' . ( $source ? $source . '/' : '' ) . $version . '/' . ( ! $without_administration && $this->administration_id ? 'adm/' . $this->administration_id . '/' : '' ) . $endpoint;

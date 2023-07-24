@@ -131,11 +131,21 @@
                 );
             }
 
+            if( self::is_logged_in() ) {
+                add_settings_field(
+                    'adsolut_administration_id',
+                    __( 'Administratie ID', 'adsolut' ),
+                    array( self::class, 'render_administration_id_field' ),
+                    'adsolut',
+                    'adsolut_settings_section'
+                );
+            }
+
             // All other settings, render a input hidden field to prevent them from being overwritten
             $settings = get_option( 'adsolut_settings', array() );
             foreach( $settings as $key => $value )
             {
-                if( in_array( $key, array( 'client_id', 'client_secret' ) ) )
+                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri' ) ) )
                     continue;
 
                 add_settings_field(
@@ -205,6 +215,40 @@
             $redirect_uri = isset( $settings['redirect_uri'] ) ? $settings['redirect_uri'] : '';
 
             echo '<input type="text" name="adsolut_settings[redirect_uri]" value="' . esc_attr( $redirect_uri ) . '" class="regular-text" />';
+        }
+
+        /**
+         * Render the administration ID field
+         * @return void
+         */
+        public static function render_administration_id_field()
+        {
+            // Check if the administrations are in the cache
+            if( false === ( $administrations = get_transient( 'adsolut_administrations' ) ) )
+            {
+                // Get the administrations
+                $administrations = new \PixelOne\Connectors\Adsolut\Entities\Administration( self::$connection );
+                $administrations = $administrations->get_all();
+
+                // Make the administrations in the array plain objects instead of \PixelOne\Connectors\Adsolut\Entities\Administration objects
+                $administrations = array_map( function( $administration ) {
+                    return $administration->to_object();
+                }, $administrations );
+
+                // Cache the administrations for 1 hour
+                set_transient( 'adsolut_administrations', $administrations, HOUR_IN_SECONDS );
+            }
+
+            $settings = get_option( 'adsolut_settings' );
+            $administration_id = isset( $settings['administration_id'] ) ? $settings['administration_id'] : '';
+
+            echo '<select name="adsolut_settings[administration_id]">';
+            echo '<option value="">' . __( 'Selecteer een administratie', 'adsolut' ) . '</option>';
+            foreach( $administrations as $administration )
+            {
+                echo '<option value="' . esc_attr( $administration->id ) . '" ' . selected( $administration_id, $administration->id, false ) . '>' . esc_html( $administration->name ) . '</option>';
+            }
+            echo '</select>';
         }
         
         /**
