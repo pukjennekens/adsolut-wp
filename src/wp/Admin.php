@@ -139,13 +139,21 @@
                     'adsolut',
                     'adsolut_settings_section'
                 );
+
+                add_settings_field(
+                    'adsolut_catalogues',
+                    __( 'Catalogi', 'adsolut' ),
+                    array( self::class, 'render_catalogues_field' ),
+                    'adsolut',
+                    'adsolut_settings_section'
+                );
             }
 
             // All other settings, render a input hidden field to prevent them from being overwritten
             $settings = get_option( 'adsolut_settings', array() );
             foreach( $settings as $key => $value )
             {
-                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri' ) ) )
+                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri', 'catalogues' ) ) )
                     continue;
 
                 add_settings_field(
@@ -249,6 +257,30 @@
                 echo '<option value="' . esc_attr( $administration->id ) . '" ' . selected( $administration_id, $administration->id, false ) . '>' . esc_html( $administration->name ) . '</option>';
             }
             echo '</select>';
+        }
+
+        /**
+         * Render the catalogues field
+         * @return void
+         */
+        public static function render_catalogues_field()
+        {
+            $catalogues = new \PixelOne\Connectors\Adsolut\Entities\Catalogue( self::$connection );
+            $catalogues = $catalogues->get_all();
+
+            $settings = get_option( 'adsolut_settings' );
+            $catalogues_selected = isset( $settings['catalogues'] ) ? $settings['catalogues'] : array();
+            
+            echo '<ul>';
+            foreach( $catalogues as $catalogue )
+            {
+                echo '<li>';
+                echo '<label>';
+                echo '<input type="checkbox" name="adsolut_settings[catalogues][]" value="' . esc_attr( $catalogue->id ) . '" ' . checked( in_array( $catalogue->id, $catalogues_selected ), true, false ) . ' />';
+                echo esc_html( $catalogue->description[0]['value'] );
+                echo '</label>';
+                echo '</li>';
+            }
         }
         
         /**
