@@ -466,6 +466,17 @@
          */
         private function format_url( $source, $version = 'V1', $endpoint, $without_administration )
         {
+            echo '<pre>';
+            print_r( array(
+                'source' => $source,
+                'version' => $version,
+                'endpoint' => $endpoint,
+                'without_administration' => $without_administration,
+                'administration_id' => $this->administration_id,
+            ) );
+            echo '</pre>';
+            echo '<br />';
+
             $url = $this->test_mode ? $this->test_url : $this->live_url;
 
             return $url . '/' . ( $source ? $source . '/' : '' ) . $version . '/' . ( ! $without_administration && $this->administration_id ? 'adm/' . $this->administration_id . '/' : '' ) . $endpoint;
@@ -539,12 +550,30 @@
             if( ! empty( $params ) )
                 $endpoint .= '?' . http_build_query( $params );
 
-            if( ! $without_administration )
-                $endpoint = $this->format_url( $source, $version, $endpoint, $without_administration );
-
             $request = $this->create_request( 'GET', $source, $version, $endpoint, $without_administration, array(), $params, $headers );
             $response = $this->client->send( $request );
 
-            return $this->format_response( $response );
+            $json = $this->format_response( $response );
+            
+            if( $fetch_all === true ) {
+                if( $next_params = $this->get_next_params( $json ) ) {
+                    $json = array_merge( $json, $this->get( $source, $version, $endpoint, $without_administration, $fetch_all, $next_params, $headers ) );
+                }
+            }
+
+            return $json;
+        }
+
+        /**
+         * Get the next parameters
+         * @param array $json The JSON response
+         * @return array|bool
+         */
+        private function get_next_params( $json )
+        {
+            if( isset( $json['pagingData'] ) && $json['pagingData']['hasNext'] == true && isset( $json['pagingData']['nextCursor'] ) )
+                return array( 'NextCursor' => $json['pagingData']['nextCursor'] );
+
+            return false;
         }
     }

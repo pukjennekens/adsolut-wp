@@ -54,6 +54,8 @@ use PixelOne\Connectors\Adsolut\Exceptions\AdsolutException;
                 }
 
                 self::$connection = $connection;
+
+                API::init( $connection );
             }
         }
     }

@@ -24,5 +24,42 @@ use PixelOne\Plugins\Adsolut\Exceptions\APIException;
                 throw new APIException( __( 'The Adsolut connection is not configured', 'adsolut' ) );
 
             self::$connection = $connection;
+
+            // Register the API routes
+            add_action( 'rest_api_init', [ __CLASS__, 'register_routes' ] );
+        }
+
+        /**
+         * Check if the app is in testing mode
+         * @return bool
+         */
+        public static function is_testing()
+        {
+            return true;
+        }
+
+        /**
+         * Register the API routes.
+         * @return void
+         */
+        public static function register_routes()
+        {
+            // Testing route
+            if( self::is_testing() ) {
+                register_rest_route( 'adsolut/v1', '/test', [
+                    'methods' => 'GET',
+                    'callback' => [ __CLASS__, 'test' ],
+                    'permission_callback' => '__return_true',
+                ] );
+            }
+        }
+
+        /**
+         * Test the API connection.
+         * @return \WP_REST_Response
+         */
+        public static function test()
+        {
+            
         }
     }
