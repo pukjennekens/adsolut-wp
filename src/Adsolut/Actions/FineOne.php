@@ -14,6 +14,6 @@
         {
             $endpoint = $this->endpoint() . '/' . $id;
             $result = $this->connection()->get( $this->source(), $this->version(), $endpoint, $this->without_administration_id(), false, array(), array() );
-            return $result;
+            return $this->collection_from_result( $result );
         }
     }

@@ -32,4 +32,11 @@
          * @return bool
          */
         abstract protected function without_administration_id();
+
+        /**
+         * @see \PixelOne\Connectors\Adsolut\Model::collection_from_result();
+         * @param array $result
+         * @return array
+         */
+        abstract protected function collection_from_result( $result );
     }

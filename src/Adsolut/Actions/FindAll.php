@@ -14,7 +14,7 @@
         public function get( $params = array(), $headers = array() )
         {
             $result = $this->connection()->get( $this->source(), $this->version(), $this->endpoint(), $this->without_administration_id(), false, $params, $headers );
-            return $result;
+            return $this->collection_from_result( $result );
         }
 
         /**
@@ -26,6 +26,6 @@
         public function getAll( $params = array(), $headers = array() )
         {
             $result = $this->connection()->get( $this->source(), $this->version(), $this->endpoint(), $this->without_administration_id(), true, $params, $headers );
-            return $result;
+            return $this->collection_from_result( $result );
         }
     }

@@ -6,6 +6,9 @@
      */
     abstract class Model
     {
+        const NESTING_TYPE_ARRAY_OF_OBJECTS = 'array_of_objects';
+        const NESTING_TYPE_NESTED_OBJECTS   = 'nested_objects';
+
         /**
          * @var \PixelOne\Connectors\Adsolut\Connection $connection
          */
@@ -50,6 +53,22 @@
          * @var bool $initialized The model initialized
          */
         protected $initialized = false;
+
+        /**
+         * @var array $single_nested_entities The model single nested entities
+         */
+        protected $single_nested_entities = array();
+
+        /**
+         * Array containing the name of the attribute that contains nested objects as key and an array with the entity name
+         * and json representation type.
+         * 
+         * JSON representation of an array of objects (NESTING_TYPE_ARRAY_OF_OBJECTS) [ {}, {}, {} ]
+         * JSON representation of nested objects (NESTING_TYPE_NESTED_OBJECTS) { "0": {}, "1": {}, "2": {} }
+         * 
+         * @var array $multiple_nested_entities The model multiple nested entities
+         */
+        protected $multiple_nested_entities = array();
 
         /**
          * Model constructor
@@ -193,5 +212,105 @@
         public function without_administration_id()
         {
             return $this->without_administration_id;
+        }
+
+        /**
+         * Create a collection of models from plain result data
+         * @param array $result
+         * @return array
+         */
+        public function collection_from_result( $result )
+        {
+            if( (bool) count( array_filter( array_keys( $result ), 'is_string' ) ) )
+                $result = [$result];
+
+            $collection = array();
+            foreach( $result as $_result ) {
+                $collection[] = $this->make_from_response( $_result );
+            }
+
+            return $collection;
+        }
+
+        /**
+         * Create a new object with the response from the API
+         * @param array $response
+         * @return static
+         */
+        public function make_from_response( $response )
+        {
+            $entity = new static( $this->connection );
+            $entity->self_from_response( $response );
+
+            return $entity;
+        }
+
+        /**
+         * Recreate this object with the response from the API
+         * 
+         * @param array $response
+         * @return $this
+         */
+        public function self_from_response( $response )
+        {
+            $this->fill( $response, true );
+
+            foreach( $this->get_single_nested_entities() as $key => $value ) {
+                if( isset( $response[ $key ] ) ) {
+                    $entity_name = $value;
+                    $this->$key = new $entity_name( $this->connection, $response[ $key ] );
+                }
+            }
+
+            foreach( $this->get_multiple_nested_entities() as $key => $value ) {
+                if( isset( $response[ $key ] ) ) {
+                    $entity_name = $value['entity'];
+                    $initiated_entity = new $entity_name( $this->connection );
+                    $this->$key = $initiated_entity->collection_from_result( $response[ $key ] );
+                }
+            }
+        }
+
+        /**
+         * Get the single nested entities
+         * @return array
+         */
+        public function get_single_nested_entities()
+        {
+            return $this->single_nested_entities;
+        }
+
+        /**
+         * Get the multiple nested entities
+         * @return array
+         */
+        public function get_multiple_nested_entities()
+        {
+            return $this->multiple_nested_entities;
+        }
+
+        /**
+         * Make a var_dump and print_r look better
+         * @return array
+         */
+        public function __debugInfo()
+        {
+            $result = array();
+
+            foreach( $this->fillable as $attribute ) {
+                $result[ $attribute ] = $this->$attribute;
+            }
+
+            return $result;
+        }
+
+        /**
+         * Determine if an attribute exists on the model.
+         * @param string $key The attribute key
+         * @return bool
+         */
+        public function __isset( $key )
+        {
+            return isset( $this->attributes[ $key ] ) && !is_null( $this->attributes[ $key ] );
         }
     }
