@@ -455,6 +455,28 @@
         }
 
         /**
+         * Set catalogues
+         * @param array $catalogues
+         * @return void
+         */
+        public static function set_catalogues( $catalogues )
+        {
+            $settings = get_option( 'adsolut_settings' );
+            $settings['catalogues'] = $catalogues;
+            update_option( 'adsolut_settings', $settings );
+        }
+
+        /**
+         * Get catalogues
+         * @return array
+         */
+        public static function get_catalogues()
+        {
+            $settings = get_option( 'adsolut_settings' );
+            return isset( $settings['catalogues'] ) ? $settings['catalogues'] : array();
+        }
+
+        /**
          * Add an admin notice if the plugin is not configured
          * @return void
          */
