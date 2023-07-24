@@ -46,20 +46,30 @@ use PixelOne\Plugins\Adsolut\Exceptions\APIException;
         {
             // Testing route
             if( self::is_testing() ) {
-                register_rest_route( 'adsolut/v1', '/test', [
+                register_rest_route( 'adsolut/v1', '/products', [
                     'methods' => 'GET',
-                    'callback' => [ __CLASS__, 'test' ],
+                    'callback' => [ __CLASS__, 'get_products' ],
                     'permission_callback' => '__return_true',
                 ] );
             }
         }
 
         /**
-         * Test the API connection.
+         * Get the products from the API.
          * @return \WP_REST_Response
          */
-        public static function test()
+        public static function get_products()
         {
-            
+            $catalogues_ids = Admin::get_catalogues();
+
+            $catalogue_products = new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection );
+            $catalogue_products = $catalogue_products->get_all( array( 'CatalogueCodes' => implode( ',', $catalogues_ids ) ) ); 
+
+            $products = array();
+            foreach( $catalogue_products as $catalogue_product ) {
+                $products[] = $catalogue_product->to_array();
+            }
+
+            return new \WP_REST_Response( $products, 200 );
         }
     }

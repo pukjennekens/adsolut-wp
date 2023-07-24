@@ -276,7 +276,7 @@
             {
                 echo '<li>';
                 echo '<label>';
-                echo '<input type="checkbox" name="adsolut_settings[catalogues][]" value="' . esc_attr( $catalogue->id ) . '" ' . checked( in_array( $catalogue->id, $catalogues_selected ), true, false ) . ' />';
+                echo '<input type="checkbox" name="adsolut_settings[catalogues][]" value="' . esc_attr( $catalogue->code ) . '" ' . checked( in_array( $catalogue->code, $catalogues_selected ), true, false ) . ' />';
                 echo esc_html( $catalogue->description[0]['value'] );
                 echo '</label>';
                 echo '</li>';
