@@ -322,4 +322,19 @@
         {
             return isset( $this->attributes[ $key ] ) && !is_null( $this->attributes[ $key ] );
         }
+
+        /**
+         * When the object is converted to an array
+         * @return array
+         */
+        public function to_array()
+        {
+            $result = array();
+
+            foreach( $this->fillable as $attribute ) {
+                $result[ $attribute ] = $this->$attribute;
+            }
+
+            return $result;
+        }
     }
