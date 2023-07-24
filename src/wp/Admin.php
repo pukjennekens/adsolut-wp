@@ -130,6 +130,36 @@
                     'adsolut_settings_section'
                 );
             }
+
+            // All other settings, render a input hidden field to prevent them from being overwritten
+            $settings = get_option( 'adsolut_settings', array() );
+            foreach( $settings as $key => $value )
+            {
+                if( in_array( $key, array( 'client_id', 'client_secret' ) ) )
+                    continue;
+
+                add_settings_field(
+                    'adsolut_' . $key,
+                    '',
+                    array( self::class, 'render_hidden_field' ),
+                    'adsolut',
+                    'adsolut_settings_section',
+                    array(
+                        'key'   => $key,
+                        'value' => $value,
+                    )
+                );
+            }
+        }
+
+        /**
+         * Render a hidden field
+         * @param array $args
+         * @return void
+         */
+        public static function render_hidden_field( $args )
+        {
+            echo '<input type="hidden" name="adsolut_settings[' . $args['key'] . ']" value="' . esc_attr( $args['value'] ) . '" />';
         }
 
         /**
