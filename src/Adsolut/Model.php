@@ -79,7 +79,7 @@
         public function __construct( Connection $connection, array $attributes = array() )
         {
             $this->connection = $connection;
-            $this->fill( $attributes );
+            $this->fill( $attributes, true );
         }
 
         /**

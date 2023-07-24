@@ -441,7 +441,7 @@
             if( empty( $this->access_token ) )
                 $this->acquire_access_token();
 
-            if( $this->expires_at < time() )
+            if( $this->expires_at + 60 < time() )
                 $this->refresh_access_token();
 
             if( ! empty( $this->access_token ) )
@@ -536,17 +536,16 @@
          */
         public function get( $source, $version, $endpoint, $without_administration = false, $fetch_all = false, $params = array(), $headers = array() )
         {
-            if( ! empty( $params ) )
-                $endpoint .= '?' . http_build_query( $params );
-
+            error_log( 'GET ' . $endpoint );
             $request = $this->create_request( 'GET', $source, $version, $endpoint, $without_administration, array(), $params, $headers );
             $response = $this->client->send( $request );
+            $response = $this->format_response( $response );
 
-            $json = $this->format_response( $response );
+            $json = isset( $response['data'] ) ? $response['data'] : $response;
             
             if( $fetch_all === true ) {
-                if( $next_params = $this->get_next_params( $json ) ) {
-                    $json = array_merge( $json, $this->get( $source, $version, $endpoint, $without_administration, $fetch_all, $next_params, $headers ) );
+                if( $next_params = $this->get_next_params( $response ) ) {
+                    $json = array_merge( $json, $this->get( $source, $version, $endpoint, $without_administration, $fetch_all, array_merge( $params, $next_params ), $headers ) );
                 }
             }
 
