@@ -23,7 +23,7 @@
          * @throws \PixelOne\Connectors\Adsolut\AdsolutException
          * @return mixed
          */
-        public function getAll( $params = array(), $headers = array() )
+        public function get_all( $params = array(), $headers = array() )
         {
             $result = $this->connection()->get( $this->source(), $this->version(), $this->endpoint(), $this->without_administration_id(), true, $params, $headers );
             return $this->collection_from_result( $result );
