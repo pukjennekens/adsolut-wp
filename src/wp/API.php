@@ -62,6 +62,9 @@ use PixelOne\Plugins\Adsolut\Exceptions\APIException;
         {
             $catalogues_ids = Admin::get_catalogues();
 
+            if( empty( $catalogues_ids ) )
+                return new \WP_REST_Response( array(), 200 );
+
             $catalogue_products = new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection );
             $catalogue_products = $catalogue_products->get_all( array( 'CatalogueCodes' => implode( ',', $catalogues_ids ) ) ); 
 
