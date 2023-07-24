@@ -72,7 +72,7 @@
                 'logout_uri'         => self::get_logout_uri(),
                 'is_configured'      => self::is_configured(),
                 'errors'             => self::get_errors(),
-                'is_logged_in'       => false,
+                'is_logged_in'       => self::is_logged_in(),
                 'auth_url'           => self::get_auth_url(),
                 'test_mode'          => self::get_test_mode(),
                 'access_token'       => self::get_access_token(),
