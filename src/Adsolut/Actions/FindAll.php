@@ -8,6 +8,7 @@
         /**
          * @param array $params
          * @param array $headers
+         * @throws \PixelOne\Connectors\Adsolut\AdsolutException
          * @return mixed
          */
         public function get( $params = array(), $headers = array() )
@@ -19,6 +20,7 @@
         /**
          * @param array $params
          * @param array $headers
+         * @throws \PixelOne\Connectors\Adsolut\AdsolutException
          * @return mixed
          */
         public function getAll( $params = array(), $headers = array() )
