@@ -1,10 +1,9 @@
 <?php
     namespace PixelOne\Plugins\Adsolut;
-
-use PixelOne\Plugins\Adsolut\Exceptions\APIException;
-
     defined( 'ABSPATH' ) || die;
 
+    use PixelOne\Plugins\Adsolut\Exceptions\APIException;
+    
     class API
     {
         /**
