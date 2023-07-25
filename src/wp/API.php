@@ -51,6 +51,13 @@
                     'permission_callback' => '__return_true',
                 ] );
             }
+
+            // Import products route
+            register_rest_route( 'adsolut/v1', '/import-products', [
+                'methods' => 'GET',
+                'callback' => [ Sync::class, 'sync_products' ],
+                'permission_callback' => '__return_true',
+            ] );
         }
 
         /**

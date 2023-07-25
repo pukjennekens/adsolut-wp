@@ -1,7 +1,7 @@
 <?php
     namespace PixelOne\Plugins\Adsolut;
 
-use PixelOne\Connectors\Adsolut\Exceptions\AdsolutException;
+    use PixelOne\Connectors\Adsolut\Exceptions\AdsolutException;
 
     defined( 'ABSPATH' ) || die;
 
@@ -57,6 +57,7 @@ use PixelOne\Connectors\Adsolut\Exceptions\AdsolutException;
                 self::$connection = $connection;
 
                 API::init( $connection );
+                Sync::init( $connection );
             }
         }
     }

@@ -7,16 +7,42 @@
     /**
      * Administrations class
      * 
-     * @property string $id Primary key
-     * @property string $companyRegistrationNumber Company registration number
-     * @property string $companyRegistrationNumberPrefix Company registration number prefix
-     * @property string $name Name
-     * @property string $identifier Identifier
-     * @property string $displayName Display name
-     * @property string $language Language
-     * @property string $organizationalUnitId Organizational unit id
-     * @property string $administrationType Administration type
-     * @property array $capabilities Capabilities
+     * code
+     * @property string $name
+     * @property string $description
+     * @property string $webName
+     * @property string $webDescription
+     * @property string $baseUnitId
+     * @property string $defaultSalesUnitId
+     * @property string $productUnits
+     * @property string $brandId
+     * @property string $categoryIds
+     * @property string $productDiscountGroupId
+     * @property string $productDiscountSubGroupId
+     * @property string $weight
+     * @property string $allowDiscount
+     * @property string $stockManagement
+     * @property string $vatCodeId
+     * @property string $reducedVatCodeId
+     * @property string $contributionIds
+     * @property string $emptiesContributionId
+     * @property string $catalogueIds
+     * @property string $catalogueProductSequences
+     * @property string $relatedProductIds
+     * @property string $variationTypeId
+     * @property string $variationOptionId
+     * @property string $variationMainProductId
+     * @property string $variationPricesFromMainProduct
+     * @property string $manufacturerProductNumber
+     * @property string $extraData
+     * @property string $productExtraInformations
+     * @property string $blocked
+     * @property string $endOfSeries
+     * @property string $orderState
+     * @property string $serviceProduct
+     * @property string $created
+     * @property string $lastModified
+     * @property string $id
      */
     class CatalogueProduct extends Model
     {
