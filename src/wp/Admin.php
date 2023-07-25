@@ -140,13 +140,14 @@
                     'adsolut_settings_section'
                 );
 
-                add_settings_field(
-                    'adsolut_catalogues',
-                    __( 'Catalogi', 'adsolut' ),
-                    array( self::class, 'render_catalogues_field' ),
-                    'adsolut',
-                    'adsolut_settings_section'
-                );
+                if( self::get_administration_id() )
+                    add_settings_field(
+                        'adsolut_catalogues',
+                        __( 'Catalogi', 'adsolut' ),
+                        array( self::class, 'render_catalogues_field' ),
+                        'adsolut',
+                        'adsolut_settings_section'
+                    );
             }
 
             // All other settings, render a input hidden field to prevent them from being overwritten
