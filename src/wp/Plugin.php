@@ -58,6 +58,7 @@
 
                 API::init( $connection );
                 Sync::init( $connection );
+                WooCommerce::init( $connection );
             }
         }
     }
