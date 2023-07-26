@@ -3,6 +3,7 @@
 
     use PixelOne\Connectors\Adsolut\Model;
     use PixelOne\Connectors\Adsolut\Actions\FindAll;
+    use PixelOne\Connectors\Adsolut\Actions\FindAllByCatalogue;
 
     /**
      * Product pirce class
@@ -25,6 +26,7 @@
     class ProductPirce extends Model
     {
         use FindAll;
+        use FindAllByCatalogue;
 
         /**
          * @var string $source The API source

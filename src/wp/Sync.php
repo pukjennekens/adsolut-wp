@@ -32,6 +32,7 @@
                 throw new PluginException( __( 'The WC_Product class does not exist', 'adsolut' ) );
 
             add_action( 'init', [ __CLASS__, 'register_functions' ] );
+            add_action( 'init', [ __CLASS__, 'setup_custom_tables' ] );
         }
 
         /**
@@ -74,6 +75,64 @@
 
                 return $product->get_id();
             }
+
+            /**
+             * Get the prices for a product by the Adsolut ID
+             * @param string $id The Adsolut ID
+             * @return array|bool The prices or false if there are no prices
+             */
+            function get_adsolut_product_prices_by_adsolut_id( $id )
+            {
+                global $wpdb;
+
+                $prices = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}adsolut_product_prices WHERE product_id = %s ORDER BY min_quantity ASC", $id ) );
+
+                if( ! $prices )
+                    return false;
+
+                return $prices;
+            }
+
+            /**
+             * Get the prices for a product by the WooCommerce product ID
+             * @param int $id The product ID
+             * @return array|bool The prices or false if there are no prices
+             */
+            function get_adsolut_product_prices_by_product_id( $id )
+            {
+                $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
+
+                if( ! $adsolut_id )
+                    return false;
+
+                return get_adsolut_product_prices_by_adsolut_id( $adsolut_id );
+            }
+        }
+
+        /**
+         * Setup custom tables
+         * @return void
+         */
+        public static function setup_custom_tables()
+        {
+            global $wpdb;
+
+            // Product prices table
+            $wpdb->query( "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}adsolut_product_prices (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                product_id varchar(255) NULL,
+                price_no_vat decimal(10,2) NULL,
+                price_with_vat decimal(10,2) NULL,
+                currency_id varchar(255) NULL,
+                customer_id varchar(255) NULL,
+                customer_discount_group_id varchar(255) NULL,
+                price_category_id varchar(255) NULL,
+                start_date datetime NULL,
+                end_date datetime NULL,
+                min_quantity int(11) NULL,
+                adsolut_id varchar(255) NULL,
+                PRIMARY KEY  (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;" );
         }
 
         /**
@@ -84,44 +143,94 @@
          */
         public static function sync_products( $page_size = null, $next_cursor = null )
         {
-            $params = array();
-
-            if( $page_size ) {
-                $params['PageSize'] = $page_size;
-            } else {
-                $params['PageSize'] = 100;
-            }
-
-            if( $next_cursor )
-                $params['NextCursor'] = $next_cursor;
-
             $catalogues_ids = Admin::get_catalogues();
 
             if( empty( $catalogues_ids ) )
                 return 0;
 
-            $params['CatalogueCodes'] = implode( ',', $catalogues_ids );
+            /**
+             * ====================
+             * START PRODUCTS SYNC
+             * ====================
+             */
+
+            // $params = array();
+
+            // if( $page_size ) {
+            //     $params['PageSize'] = $page_size;
+            // } else {
+            //     $params['PageSize'] = 100;
+            // }
+
+            // if( $next_cursor )
+            //     $params['NextCursor'] = $next_cursor;
+
+            // $params['CatalogueCodes'] = implode( ',', $catalogues_ids );
                 
-            $response           = self::$connection->request( 'GET', 'erp', 'V1', 'CatalogueProducts', false, array(), $params );
-            $catalogue_products = $response['data'];
+            // $response           = self::$connection->request( 'GET', 'erp', 'V1', 'CatalogueProducts', false, array(), $params );
+            // $catalogue_products = $response['data'];
 
-            if( ! $catalogue_products )
-                return 0;
+            // if( ! $catalogue_products )
+            //     return 0;
 
-            foreach( $catalogue_products as $catalogue_product ) {
-                $catalogue_product = ( new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection ) )->make_from_response( $catalogue_product );
+            // foreach( $catalogue_products as $catalogue_product ) {
+            //     $catalogue_product = ( new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection ) )->make_from_response( $catalogue_product );
 
+            //     /**
+            //      * @var WC_Product $product
+            //      */
+            //     if( ! $product = get_adsolut_product_by_id( $catalogue_product->id, true ) )
+            //         $product = new WC_Product();
+
+            //     $product->set_name( $catalogue_product->name[0]['value'] );
+
+            //     $product_id = $product->save();
+
+            //     update_post_meta( $product_id, 'adsolut_id', $catalogue_product->id );
+            // }
+
+            /**
+             * ====================
+             * END PRODUCTS SYNC
+             * ====================
+             */
+
+            /**
+             * ====================
+             * START PRICES SYNC
+             * ====================
+             */
+
+            $product_prices = new \PixelOne\Connectors\Adsolut\Entities\ProductPirce( self::$connection );
+            $product_prices = $product_prices->get_all_by_catalogue_ids( $catalogues_ids );
+
+            // Empty the table
+            global $wpdb;
+            $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}adsolut_product_prices" );
+
+            foreach( $product_prices as $product_price ) {
                 /**
-                 * @var WC_Product $product
+                 * @var \PixelOne\Connectors\Adsolut\Entities\ProductPirce $product_price
                  */
-                if( ! $product = get_adsolut_product_by_id( $catalogue_product->id, true ) )
-                    $product = new WC_Product();
-
-                $product->set_name( $catalogue_product->name[0]['value'] );
-
-                $product_id = $product->save();
-
-                update_post_meta( $product_id, 'adsolut_id', $catalogue_product->id );
+                $wpdb->insert( $wpdb->prefix . 'adsolut_product_prices', array(
+                    'product_id'                   => $product_price->productId,
+                    'price_no_vat'                 => $product_price->salesPriceExclVat,
+                    'price_with_vat'               => $product_price->salesPriceInclVat,
+                    'currency_id'                  => $product_price->currencyId,
+                    'customer_id'                  => $product_price->customerId,
+                    'customer_discount_group_id'   => $product_price->customerDiscountGroupId,
+                    'price_category_id'            => $product_price->priceCategoryId,
+                    'start_date'                   => $product_price->startDate,
+                    'end_date'                     => $product_price->endDate,
+                    'min_quantity'                 => $product_price->minQuantity,
+                    'adsolut_id'                   => $product_price->id,
+                ) );
             }
+            
+            /**
+             * ====================
+             * END PRICES SYNC
+             * ====================
+             */
         }
     }
