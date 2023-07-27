@@ -140,6 +140,19 @@
 
                 return get_adsolut_product_price_by_product_id( $adsolut_id, $quantity );
             }
+
+            /**
+             * Get all the price categories
+             * @return array|bool The price categories or false if there are no price categories
+             */
+            function get_adsolut_price_categories()
+            {
+                global $wpdb, $connection;
+
+                $price_categories = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}adsolut_price_categories" );
+
+                return $price_categories;
+            }
         }
 
         /**
@@ -166,6 +179,15 @@
                 adsolut_id varchar(255) NULL,
                 PRIMARY KEY  (id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;" );
+
+            // Price categories table
+            $wpdb->query( "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}adsolut_price_categories (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                adsolut_id varchar(255) NULL,
+                code varchar(255) NULL,
+                description varchar(255) NULL,
+                PRIMARY KEY  (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;" );
         }
 
         /**
@@ -176,6 +198,8 @@
          */
         public static function sync_products( $page_size = null, $next_cursor = null )
         {
+            global $wpdb;
+
             $catalogues_ids = Admin::get_catalogues();
 
             if( empty( $catalogues_ids ) )
@@ -238,7 +262,6 @@
             $product_prices = $product_prices->get_all_by_catalogue_ids( $catalogues_ids );
 
             // Empty the table
-            global $wpdb;
             $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}adsolut_product_prices" );
 
             foreach( $product_prices as $product_price ) {
@@ -265,5 +288,27 @@
              * END PRICES SYNC
              * ====================
              */
+
+            /**
+             * ====================
+             * START PRICE CATEGORIES SYNC
+             * ====================
+             */
+            $price_categories = new \PixelOne\Connectors\Adsolut\Entities\PriceCategory( self::$connection );
+            $price_categories = $price_categories->get_all();
+
+            // Empty the table
+            $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}adsolut_price_categories" );
+
+            foreach( $price_categories as $price_category ) {
+                /**
+                 * @var \PixelOne\Connectors\Adsolut\Entities\PriceCategory $price_category
+                 */
+                $wpdb->insert( $wpdb->prefix . 'adsolut_price_categories', array(
+                    'adsolut_id'    => $price_category->id,
+                    'code'          => $price_category->code,
+                    'description'   => $price_category->description[0]['value'],
+                ) );
+            }
         }
     }

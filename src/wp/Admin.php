@@ -140,7 +140,7 @@
                     'adsolut_settings_section'
                 );
 
-                if( self::get_administration_id() )
+                if( self::get_administration_id() ) {
                     add_settings_field(
                         'adsolut_catalogues',
                         __( 'Catalogi', 'adsolut' ),
@@ -148,13 +148,22 @@
                         'adsolut',
                         'adsolut_settings_section'
                     );
+
+                    add_settings_field(
+                        'adsolut_price_category_code',
+                        __( 'Prijs categorie code', 'adsolut' ),
+                        array( self::class, 'render_price_category_code_field' ),
+                        'adsolut',
+                        'adsolut_settings_section'
+                    );
+                }
             }
 
             // All other settings, render a input hidden field to prevent them from being overwritten
             $settings = get_option( 'adsolut_settings', array() );
             foreach( $settings as $key => $value )
             {
-                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri', 'catalogues' ) ) )
+                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri', 'catalogues', 'price_category_code' ) ) )
                     continue;
 
                 add_settings_field(
@@ -281,6 +290,29 @@
                 echo esc_html( $catalogue->description[0]['value'] );
                 echo '</label>';
                 echo '</li>';
+            }
+        }
+
+        /**
+         * Render the price category code field
+         * @return void
+         */
+        public static function render_price_category_code_field()
+        {
+            $price_categories = get_adsolut_price_categories();
+            
+            $settings = get_option( 'adsolut_settings' );
+            $price_category_code = isset( $settings['price_category_code'] ) ? $settings['price_category_code'] : '';
+
+            if( ! empty( $price_categories ) ) {
+                echo '<select name="adsolut_settings[price_category_code]">';
+                echo '<option value="">' . __( 'Selecteer een prijscategorie', 'adsolut' ) . '</option>';
+                foreach( $price_categories as $price_category ) {
+                    echo '<option value="' . esc_attr( $price_category->code ) . '" ' . selected( $price_category_code, $price_category->code, false ) . '>' . esc_html( $price_category->code ) . ' (' . esc_html( $price_category->description ) . ')' . '</option>';
+                }
+                echo '</select>';
+            } else {
+                echo '<p>' . __( 'Er zijn geen prijscategorieën gevonden. Voer eerst de synchronisatie uit', 'adsolut' ) . '</p>';
             }
         }
         
