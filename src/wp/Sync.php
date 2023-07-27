@@ -79,14 +79,14 @@
             /**
              * Get the prices for a product by the Adsolut ID
              * @param string $id The Adsolut ID
-             * @param int $quantity The quantity
+             * @param string $price_category_id The price category ID
              * @return array|bool The prices or false if there are no prices
              */
-            function get_adsolut_product_prices_by_adsolut_id( $id )
+            function get_adsolut_product_prices_by_adsolut_id( $id, $price_category_id )
             {
                 global $wpdb;
 
-                $prices = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}adsolut_product_prices WHERE product_id = %s ORDER BY min_quantity ASC", $id ) );
+                $prices = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}adsolut_product_prices WHERE product_id = %s AND price_category_id = %s ORDER BY min_quantity ASC", $id, $price_category_id ) );
 
                 if( ! $prices )
                     return false;
@@ -98,16 +98,17 @@
              * Get the price of an Adsolut product by the Product ID and quantity
              * @param int $id The product ID
              * @param int $quantity The quantity
+             * @param string $price_category_id The price category ID
              * @return float|bool The price or false if there is no price
              */
-            function get_adsolut_product_price_by_product_id( $id, $quantity )
+            function get_adsolut_product_price_by_product_id( $id, $quantity, $price_category_id )
             {
                 $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
 
                 if( ! $adsolut_id )
                     return false;
 
-                $prices = get_adsolut_product_prices_by_adsolut_id( $adsolut_id );
+                $prices = get_adsolut_product_prices_by_adsolut_id( $adsolut_id, $price_category_id );
 
                 if( ! $prices )
                     return false;
@@ -129,16 +130,17 @@
              * Get the prices for a product by the WooCommerce product ID
              * @param int $id The product ID
              * @param int $quantity The quantity
+             * @param string $price_category_id The price category ID
              * @return array|bool The prices or false if there are no prices
              */
-            function get_adsolut_product_prices_by_product_id( $id, $quantity )
+            function get_adsolut_product_prices_by_product_id( $id, $quantity, $price_category_id )
             {
                 $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
 
                 if( ! $adsolut_id )
                     return false;
 
-                return get_adsolut_product_price_by_product_id( $adsolut_id, $quantity );
+                return get_adsolut_product_price_by_product_id( $adsolut_id, $quantity, $price_category_id );
             }
 
             /**

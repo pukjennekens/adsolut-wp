@@ -150,9 +150,9 @@
                     );
 
                     add_settings_field(
-                        'adsolut_price_category_code',
+                        'adsolut_price_category_id',
                         __( 'Prijs categorie code', 'adsolut' ),
-                        array( self::class, 'render_price_category_code_field' ),
+                        array( self::class, 'render_price_category_id_field' ),
                         'adsolut',
                         'adsolut_settings_section'
                     );
@@ -163,7 +163,7 @@
             $settings = get_option( 'adsolut_settings', array() );
             foreach( $settings as $key => $value )
             {
-                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri', 'catalogues', 'price_category_code' ) ) )
+                if( in_array( $key, array( 'client_id', 'client_secret', 'administration_id', 'redirect_uri', 'catalogues', 'price_category_id' ) ) )
                     continue;
 
                 add_settings_field(
@@ -297,18 +297,18 @@
          * Render the price category code field
          * @return void
          */
-        public static function render_price_category_code_field()
+        public static function render_price_category_id_field()
         {
             $price_categories = get_adsolut_price_categories();
             
             $settings = get_option( 'adsolut_settings' );
-            $price_category_code = isset( $settings['price_category_code'] ) ? $settings['price_category_code'] : '';
+            $price_category_id = isset( $settings['price_category_id'] ) ? $settings['price_category_id'] : '';
 
             if( ! empty( $price_categories ) ) {
-                echo '<select name="adsolut_settings[price_category_code]">';
+                echo '<select name="adsolut_settings[price_category_id]">';
                 echo '<option value="">' . __( 'Selecteer een prijscategorie', 'adsolut' ) . '</option>';
                 foreach( $price_categories as $price_category ) {
-                    echo '<option value="' . esc_attr( $price_category->code ) . '" ' . selected( $price_category_code, $price_category->code, false ) . '>' . esc_html( $price_category->code ) . ' (' . esc_html( $price_category->description ) . ')' . '</option>';
+                    echo '<option value="' . esc_attr( $price_category->adsolut_id ) . '" ' . selected( $price_category_id, $price_category->adsolut_id, false ) . '>' . esc_html( $price_category->code ) . ' (' . esc_html( $price_category->description ) . ')' . '</option>';
                 }
                 echo '</select>';
             } else {
@@ -489,13 +489,13 @@
 
         /**
          * Set the price category code
-         * @param string $price_category_code
+         * @param string $price_category_id
          * @return void
          */
-        public static function set_price_category_code( $price_category_code )
+        public static function set_price_category_id( $price_category_id )
         {
             $settings = get_option( 'adsolut_settings' );
-            $settings['price_category_code'] = $price_category_code;
+            $settings['price_category_id'] = $price_category_id;
             update_option( 'adsolut_settings', $settings );
         }
 
@@ -503,10 +503,10 @@
          * Get the price category code
          * @return string
          */
-        public static function get_price_category_code()
+        public static function get_price_category_id()
         {
             $settings = get_option( 'adsolut_settings' );
-            return isset( $settings['price_category_code'] ) ? $settings['price_category_code'] : '';
+            return isset( $settings['price_category_id'] ) ? $settings['price_category_id'] : '';
         }
 
         /**

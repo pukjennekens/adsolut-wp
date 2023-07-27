@@ -39,7 +39,8 @@
          */
         public static function get_product_price( $price, $product )
         {
-            $price = get_adsolut_product_price_by_product_id( $product->get_id(), 1 );
+            error_log( Admin::get_price_category_id() );
+            $price = get_adsolut_product_price_by_product_id( $product->get_id(), 1, Admin::get_price_category_id() );
 
             return $price;
         }
