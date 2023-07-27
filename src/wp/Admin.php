@@ -488,6 +488,28 @@
         }
 
         /**
+         * Set the price category code
+         * @param string $price_category_code
+         * @return void
+         */
+        public static function set_price_category_code( $price_category_code )
+        {
+            $settings = get_option( 'adsolut_settings' );
+            $settings['price_category_code'] = $price_category_code;
+            update_option( 'adsolut_settings', $settings );
+        }
+
+        /**
+         * Get the price category code
+         * @return string
+         */
+        public static function get_price_category_code()
+        {
+            $settings = get_option( 'adsolut_settings' );
+            return isset( $settings['price_category_code'] ) ? $settings['price_category_code'] : '';
+        }
+
+        /**
          * Set catalogues
          * @param array $catalogues
          * @return void
