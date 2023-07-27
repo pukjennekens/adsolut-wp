@@ -79,6 +79,7 @@
             /**
              * Get the prices for a product by the Adsolut ID
              * @param string $id The Adsolut ID
+             * @param int $quantity The quantity
              * @return array|bool The prices or false if there are no prices
              */
             function get_adsolut_product_prices_by_adsolut_id( $id )
@@ -94,18 +95,50 @@
             }
 
             /**
-             * Get the prices for a product by the WooCommerce product ID
+             * Get the price of an Adsolut product by the Product ID and quantity
              * @param int $id The product ID
-             * @return array|bool The prices or false if there are no prices
+             * @param int $quantity The quantity
+             * @return float|bool The price or false if there is no price
              */
-            function get_adsolut_product_prices_by_product_id( $id )
+            function get_adsolut_product_price_by_product_id( $id, $quantity )
             {
                 $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
 
                 if( ! $adsolut_id )
                     return false;
 
-                return get_adsolut_product_prices_by_adsolut_id( $adsolut_id );
+                $prices = get_adsolut_product_prices_by_adsolut_id( $adsolut_id );
+
+                if( ! $prices )
+                    return false;
+
+                // Sort the prices by min_quantity from high to low
+                usort( $prices, function( $a, $b ) {
+                    return $b->min_quantity - $a->min_quantity;
+                } );
+
+                foreach( $prices as $price ) {
+                    if( $quantity >= $price->min_quantity )
+                        return $price->price_no_vat;
+                }
+
+                return false;
+            }
+
+            /**
+             * Get the prices for a product by the WooCommerce product ID
+             * @param int $id The product ID
+             * @param int $quantity The quantity
+             * @return array|bool The prices or false if there are no prices
+             */
+            function get_adsolut_product_prices_by_product_id( $id, $quantity )
+            {
+                $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
+
+                if( ! $adsolut_id )
+                    return false;
+
+                return get_adsolut_product_price_by_product_id( $adsolut_id, $quantity );
             }
         }
 
@@ -154,40 +187,40 @@
              * ====================
              */
 
-            // $params = array();
+            $params = array();
 
-            // if( $page_size ) {
-            //     $params['PageSize'] = $page_size;
-            // } else {
-            //     $params['PageSize'] = 100;
-            // }
+            if( $page_size ) {
+                $params['PageSize'] = $page_size;
+            } else {
+                $params['PageSize'] = 100;
+            }
 
-            // if( $next_cursor )
-            //     $params['NextCursor'] = $next_cursor;
+            if( $next_cursor )
+                $params['NextCursor'] = $next_cursor;
 
-            // $params['CatalogueCodes'] = implode( ',', $catalogues_ids );
+            $params['CatalogueCodes'] = implode( ',', $catalogues_ids );
                 
-            // $response           = self::$connection->request( 'GET', 'erp', 'V1', 'CatalogueProducts', false, array(), $params );
-            // $catalogue_products = $response['data'];
+            $response           = self::$connection->request( 'GET', 'erp', 'V1', 'CatalogueProducts', false, array(), $params );
+            $catalogue_products = $response['data'];
 
-            // if( ! $catalogue_products )
-            //     return 0;
+            if( ! $catalogue_products )
+                return 0;
 
-            // foreach( $catalogue_products as $catalogue_product ) {
-            //     $catalogue_product = ( new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection ) )->make_from_response( $catalogue_product );
+            foreach( $catalogue_products as $catalogue_product ) {
+                $catalogue_product = ( new \PixelOne\Connectors\Adsolut\Entities\CatalogueProduct( self::$connection ) )->make_from_response( $catalogue_product );
 
-            //     /**
-            //      * @var WC_Product $product
-            //      */
-            //     if( ! $product = get_adsolut_product_by_id( $catalogue_product->id, true ) )
-            //         $product = new WC_Product();
+                /**
+                 * @var WC_Product $product
+                 */
+                if( ! $product = get_adsolut_product_by_id( $catalogue_product->id, true ) )
+                    $product = new WC_Product();
 
-            //     $product->set_name( $catalogue_product->name[0]['value'] );
+                $product->set_name( $catalogue_product->name[0]['value'] );
 
-            //     $product_id = $product->save();
+                $product_id = $product->save();
 
-            //     update_post_meta( $product_id, 'adsolut_id', $catalogue_product->id );
-            // }
+                update_post_meta( $product_id, 'adsolut_id', $catalogue_product->id );
+            }
 
             /**
              * ====================
