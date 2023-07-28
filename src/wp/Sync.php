@@ -155,6 +155,44 @@
 
                 return $price_categories;
             }
+
+            /**
+             * Get the stock by the Adsolut ID
+             * @param string $id The Adsolut ID
+             * @return int|bool The stock or false if there is no stock
+             */
+            function get_adsolut_stock_by_adsolut_id( $id )
+            {
+                global $wpdb;
+
+                // Select all rows from warehouse_stocks where the product_id is the Adsolut ID, it can be in multiple warehouses
+                $stock = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}adsolut_warehouse_stocks WHERE product_id = %s", $id ) );
+
+                if( ! $stock )
+                    return false;
+
+                // Loop through the stock and add the stock of each warehouse together
+                $stock = array_reduce( $stock, function( $carry, $item ) {
+                    return $carry + $item->available_stock;
+                } );
+
+                return $stock;
+            }
+
+            /**
+             * Get the stock by the WooCommerce product ID
+             * @param int $id The product ID
+             * @return int|bool The stock or false if there is no stock
+             */
+            function get_adsolut_stock_by_product_id( $id )
+            {
+                $adsolut_id = get_post_meta( $id, 'adsolut_id', true );
+
+                if( ! $adsolut_id )
+                    return false;
+
+                return get_adsolut_stock_by_adsolut_id( $adsolut_id );
+            }
         }
 
         /**
@@ -188,6 +226,16 @@
                 adsolut_id varchar(255) NULL,
                 code varchar(255) NULL,
                 description varchar(255) NULL,
+                PRIMARY KEY  (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;" );
+
+            // Warehouse stocks
+            $wpdb->query( "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}adsolut_warehouse_stocks (
+                id bigint(20) NOT NULL AUTO_INCREMENT,
+                available_stock int(11) NULL,
+                product_id varchar(255) NULL,
+                warehouse_id varchar(255) NULL,
+                adsolut_id varchar(255) NULL,
                 PRIMARY KEY  (id)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8;" );
         }
@@ -243,6 +291,8 @@
 
                 $product->set_name( $catalogue_product->name[0]['value'] );
 
+                $product->set_manage_stock( true );
+
                 $product_id = $product->save();
 
                 update_post_meta( $product_id, 'adsolut_id', $catalogue_product->id );
@@ -296,6 +346,7 @@
              * START PRICE CATEGORIES SYNC
              * ====================
              */
+
             $price_categories = new \PixelOne\Connectors\Adsolut\Entities\PriceCategory( self::$connection );
             $price_categories = $price_categories->get_all();
 
@@ -312,5 +363,41 @@
                     'description'   => $price_category->description[0]['value'],
                 ) );
             }
+
+            /**
+             * ====================
+             * END PRICE CATEGORIES SYNC
+             * ====================
+             */
+
+            /**
+             * ====================
+             * START WAREHOUSE STOCKS SYNC
+             * ====================
+             */
+
+            $warehouse_stocks = new \PixelOne\Connectors\Adsolut\Entities\WarehouseStock( self::$connection );
+            $warehouse_stocks = $warehouse_stocks->get_all( array( 'PageSize' => 500 ) );
+
+            // Empty the table
+            $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}adsolut_warehouse_stocks" );
+
+            foreach( $warehouse_stocks as $warehouse_stock ) {
+                /**
+                 * @var \PixelOne\Connectors\Adsolut\Entities\WarehouseStock $warehouse_stock
+                 */
+                $wpdb->insert( $wpdb->prefix . 'adsolut_warehouse_stocks', array(
+                    'available_stock'   => $warehouse_stock->availableStock,
+                    'product_id'        => $warehouse_stock->productId,
+                    'warehouse_id'      => $warehouse_stock->warehouseId,
+                    'adsolut_id'        => $warehouse_stock->id,
+                ) );
+            }
+
+            /**
+             * ====================
+             * END WAREHOUSE STOCKS SYNC
+             * ====================
+             */
         }
     }

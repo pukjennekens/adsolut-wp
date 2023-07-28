@@ -29,6 +29,9 @@
 
             // Price hook
             add_filter( 'woocommerce_product_get_price', [ __CLASS__, 'get_product_price' ], 10, 2 );
+            
+            // Stock hook
+            add_filter( 'woocommerce_product_get_stock_quantity', [ __CLASS__, 'get_product_stock' ], 10, 2 );
         }
 
         /**
@@ -43,5 +46,21 @@
             $price = get_adsolut_product_price_by_product_id( $product->get_id(), 1, Admin::get_price_category_id() );
 
             return $price;
+        }
+
+        /**
+         * Get the product stock
+         * @param int $stock The stock
+         * @param \WC_Product $product The product
+         * @return int
+         */
+        public static function get_product_stock( $stock, $product )
+        {
+            $stock = get_adsolut_stock_by_product_id( $product->get_id(), 1 );
+
+            if( $stock === null || $stock === false || $stock < 0 )
+                return 0;
+
+            return $stock;
         }
     }
