@@ -42,6 +42,9 @@
 
             // Create a admin page for the oauth callback url
             add_action( 'admin_post_adsolut_oauth_callback', array( self::class, 'admin_post_oauth_callback' ) );
+
+            // Create an admin page for the logout url
+            add_action( 'admin_post_adsolut_logout', array( self::class, 'admin_post_logout' ) );
         }
 
         /**
@@ -620,5 +623,26 @@
             } else {
                 wp_redirect( admin_url( 'admin.php?page=adsolut' ) );
             }
+        }
+
+        /**
+         * Logout action
+         * @return void
+         */
+        public static function admin_post_logout()
+        {
+            if( ! isset( $_GET['action'] ) || $_GET['action'] !== 'adsolut_logout' )
+                return;
+
+            self::set_authorization_code( null );
+            self::set_access_token( null );
+            self::set_refresh_token( null );
+            self::set_administration_id( null );
+            self::set_price_category_id( null );
+            self::set_catalogues( array() );
+
+            // Show notice and redirect to settings page
+            add_settings_error( 'adsolut', 'adsolut', __( 'Je bent succesvol uitgelogd.', 'adsolut' ), 'success' );
+            wp_redirect( admin_url( 'admin.php?page=adsolut' ) );
         }
     }
